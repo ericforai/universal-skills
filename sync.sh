@@ -62,18 +62,39 @@ sync_codex() {
         backup "$target"
     fi
 
+    # 清空并重新创建目标目录
+    rm -rf "$target"
     mkdir -p "$target"
 
-    # 复制 Codex 兼容的 skills
-    [ -d "$UNIVERSAL_SKILLS/categories/coding/tdd-workflow" ] && cp -r "$UNIVERSAL_SKILLS/categories/coding/tdd-workflow" "$target/"
-    [ -d "$UNIVERSAL_SKILLS/categories/coding/test-driven-development" ] && cp -r "$UNIVERSAL_SKILLS/categories/coding/test-driven-development" "$target/"
-    [ -d "$UNIVERSAL_SKILLS/categories/debugging/systematic-debugging" ] && cp -r "$UNIVERSAL_SKILLS/categories/debugging/systematic-debugging" "$target/"
-    [ -d "$UNIVERSAL_SKILLS/categories/refactoring/minimalist-refactorer" ] && cp -r "$UNIVERSAL_SKILLS/categories/refactoring/minimalist-refactorer" "$target/"
-    [ -d "$UNIVERSAL_SKILLS/categories/workflow/brainstorming" ] && cp -r "$UNIVERSAL_SKILLS/categories/workflow/brainstorming" "$target/"
-    [ -d "$UNIVERSAL_SKILLS/categories/workflow/writing-plans" ] && cp -r "$UNIVERSAL_SKILLS/categories/workflow/writing-plans" "$target/"
-    [ -d "$UNIVERSAL_SKILLS/categories/workflow/verification-before-completion" ] && cp -r "$UNIVERSAL_SKILLS/categories/workflow/verification-before-completion" "$target/"
+    # 复制所有 universal-skills 到 Codex
+    local skill_count=0
 
-    success "Codex skills 已同步"
+    # 遍历所有 categories 下的 skills (包含 SKILL.md 的目录)
+    # 注意: 不使用结尾的 / 以复制整个目录
+    for skill_dir in "$UNIVERSAL_SKILLS/categories"/*/*; do
+        if [ -d "$skill_dir" ] && [ -f "$skill_dir/SKILL.md" ]; then
+            local skill_name="$(basename "$skill_dir")"
+            # 使用 rsync 或 cp 来复制整个目录
+            cp -r "$skill_dir" "$target/$skill_name"
+            skill_count=$((skill_count + 1))
+            log "  → $skill_name"
+        fi
+    done
+
+    # 处理顶层 skills (如 security-review)
+    for skill_dir in "$UNIVERSAL_SKILLS/categories"/*; do
+        if [ -d "$skill_dir" ] && [ -f "$skill_dir/SKILL.md" ]; then
+            local skill_name="$(basename "$skill_dir")"
+            # 避免重复复制
+            if [ ! -d "$target/$skill_name" ]; then
+                cp -r "$skill_dir" "$target/$skill_name"
+                skill_count=$((skill_count + 1))
+                log "  → $skill_name"
+            fi
+        fi
+    done
+
+    success "Codex skills 已同步 ($skill_count 个技能)"
 }
 
 # 同步到项目级 skills（为 Gemini/Gemini in projects）
