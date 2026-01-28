@@ -1,0 +1,26 @@
+version: "1.0.0"
+author: "NexusArchive Team"
+skillFormat: "aiss-1.0"
+
+tags: [architecture, refactoring, modularity]
+platforms: [claude, copilot, gemini]
+
+triggers:
+  keywords:
+    - "模块化"
+    - "重构"
+    - "架构"
+    - "循环依赖"
+    - "职责分离"
+    - "SOLID"
+    - "熵增"
+    - "over-engineered"
+    - "spaghetti code"
+  filePatterns:
+    - "**/src/**/*.ts"
+    - "**/src/**/*.tsx"
+    - "**/src/**/*.java"
+  excludePatterns:
+    - "**/node_modules/**"
+    - "**/dist/**"
+    - "**/build/**"

@@ -1,0 +1,23 @@
+version: "1.0.0"
+author: "NexusArchive Team"
+skillFormat: "aiss-1.0"
+
+tags: [debugging, testing, reliability]
+platforms: [claude, copilot, gemini]
+
+triggers:
+  keywords:
+    - "偏执型调试"
+    - "生产bug"
+    - "调试"
+    - "问题定位"
+    - "hidden issue"
+    - "rigorous"
+    - "production"
+  filePatterns:
+    - "**/*.ts"
+    - "**/*.tsx"
+    - "**/*.java"
+    - "**/*.py"
+  contextRequired:
+    - "git"

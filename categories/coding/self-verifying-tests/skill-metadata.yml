@@ -1,0 +1,27 @@
+version: "1.0.0"
+author: "NexusArchive Team"
+skillFormat: "aiss-1.0"
+
+tags: [testing, e2e, verification]
+platforms: [claude, copilot, gemini]
+
+depends:
+  - tool: "playwright"
+    version: ">=1.40.0"
+  - tool: "vitest"
+    version: ">=1.0.0"
+
+triggers:
+  keywords:
+    - "自验证测试"
+    - "E2E"
+    - "测试"
+    - "playwright"
+    - "manifest.config.ts"
+  filePatterns:
+    - "**/__tests__/**/*.spec.ts"
+    - "**/tests/**/*.spec.ts"
+    - "**/e2e/**/*.ts"
+    - "**/manifest.config.ts"
+  excludePatterns:
+    - "**/node_modules/**"

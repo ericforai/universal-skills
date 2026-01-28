@@ -1,0 +1,14 @@
+# 本地覆盖（不提交）
+local/
+
+# 备份文件
+.backup/
+
+# macOS
+.DS_Store
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
