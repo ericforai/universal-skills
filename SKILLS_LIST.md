@@ -1,6 +1,6 @@
 # Universal Skills 完整列表
 
-**最后更新:** 2026-01-28 14:15
+**最后更新:** 2026-01-28 14:17
 
 **仓库:** https://github.com/ericforai/universal-skills
 
@@ -16,8 +16,8 @@
 | refactoring | 2 |
 | security | 1 |
 | ui-ux | 1 |
-| workflow | 4 |
-| **总计** | **19** |
+| workflow | 5 |
+| **总计** | **20** |
 
 ---
 
@@ -88,6 +88,7 @@
 | **continuous-learning** | 持续学习，提取可复用模式 |
 | **verification-before-completion** | 完成前验证 |
 | **writing-plans** | 编写实现计划 |
+| **standard-workflow** | Everything Claude Code 标准流程: plan→tdd→code-review→refactor-clean |
 
 ---
 
@@ -131,6 +132,17 @@ gemini "使用 universal-skills 中的 security-review"
 | **security-review** | `skills/security-review/` | ✅ 已添加 |
 | **strategic-compact** | `skills/strategic-compact/` | ✅ 已同步 |
 | **tdd-workflow** | `skills/tdd-workflow/` | ✅ 已同步 |
+
+---
+
+## 🔄 Everything Claude Code 标准工作流程
+
+| 阶段 | 指令 | 角色 | 说明 |
+|------|------|------|------|
+| 1. 规划 | `/plan` | 架构师 | 分析需求，拆解步骤，生成计划文档，等待确认 |
+| 2. 开发 | `/tdd` | 工程师 | 测试驱动开发：RED→GREEN→REFACTOR，确保80%+覆盖率 |
+| 3. 质检 | `/code-review` | 审查员 | 安全检查、代码质量审查，阻塞严重问题 |
+| 4. 维护 | `/refactor-clean` | 保洁员 | 清理死代码，优化文件结构，测试验证后删除 |
 
 ---
 
