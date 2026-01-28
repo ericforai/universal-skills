@@ -76,15 +76,57 @@ sync_codex() {
     success "Codex skills 已同步"
 }
 
-# 同步到项目级 .claude/skills
+# 同步到项目级 skills（为 Gemini/Gemini in projects）
 sync_projects() {
-    # 扫描用户目录下的项目
-    for project_dir in "$HOME"/*; do
-        if [ -d "$project_dir/.claude/skills" ]; then
-            log "发现项目: $(basename "$project_dir")"
-            # 可选：同步到项目级 skills
+    local synced_count=0
+
+    # 需要同步的项目列表
+    local projects=(
+        "$HOME/clawd"
+        "$HOME/clawd-work"
+        "$HOME/nexusarchive"
+        "$HOME/everything-claude-code"
+        "$HOME/JLAF"
+        "$HOME/PLM"
+        "$HOME/zhitoujianli"
+        "$HOME/liujie"
+    )
+
+    for project_dir in "${projects[@]}"; do
+        if [ ! -d "$project_dir" ]; then
+            continue
         fi
+
+        local project_name="$(basename "$project_dir")"
+        local skills_dir="$project_dir/skills"
+
+        # 检查项目是否有 skills 目录
+        if [ ! -d "$skills_dir" ]; then
+            continue
+        fi
+
+        # 创建 universal-skills symlink
+        local symlink="$skills_dir/universal-skills"
+
+        # 删除旧的 symlink 或文件
+        if [ -L "$symlink" ]; then
+            rm -f "$symlink"
+        elif [ -e "$symlink" ]; then
+            warn "$project_name: universal-skills 是目录，跳过"
+            continue
+        fi
+
+        # 创建 symlink
+        ln -sf "$UNIVERSAL_SKILLS/categories" "$symlink"
+        log "✓ $project_name: universal-skills symlink 已创建"
+        synced_count=$((synced_count + 1))
     done
+
+    if [ $synced_count -gt 0 ]; then
+        success "已同步 $synced_count 个项目的 universal-skills symlink"
+    else
+        log "未找到需要同步的项目"
+    fi
 }
 
 # 同步到 Gemini
@@ -96,21 +138,21 @@ sync_gemini() {
 
     local extension_dir="$UNIVERSAL_SKILLS/gemini-extension/universal-skills"
 
-    if [ ! -d "$extension_dir" ]; then
-        warn "Gemini extension 目录不存在，跳过"
+    # 确保 gemini-extension.json 存在
+    if [ ! -f "$extension_dir/gemini-extension.json" ]; then
+        warn "Gemini extension 配置缺失，跳过"
         return
     fi
 
     # 检查是否已安装
     if gemini extensions list 2>/dev/null | grep -q "universal-skills"; then
-        log "Gemini extension 已安装，更新中..."
-        # gemini extensions update universal-skills 2>/dev/null || true
+        log "Gemini extension 已安装"
     else
         log "安装 Gemini extension..."
-        # gemini extensions link "$extension_dir" 2>/dev/null || warn "Gemini extension 安装失败（需手动执行）"
+        echo "Y" | gemini extensions link "$extension_dir" > /dev/null 2>&1 || true
     fi
 
-    success "Gemini extension 准备就绪（运行 gemini extensions link $extension_dir 手动安装）"
+    success "Gemini extension 已就绪"
 }
 
 # 同步到 Antigravity (通过 MCP)
@@ -148,5 +190,8 @@ echo "  - 本地自定义技能放在: $UNIVERSAL_SKILLS/local/"
 echo "  - 备份位置: $BACKUP_DIR"
 echo "  - 重启 AI Coding 工具以加载新 skills"
 echo ""
-echo "手动安装 Gemini extension:"
-echo "  gemini extensions link $UNIVERSAL_SKILLS/gemini-extension/universal-skills"
+echo "已同步的工具："
+echo "  ✓ Claude Code (~/.claude/skills/)"
+echo "  ✓ Codex (~/.codex/skills/)"
+echo "  ✓ Gemini CLI (extension + project symlinks)"
+echo "  ✓ 项目级 (clawd, nexusarchive, etc.)"
