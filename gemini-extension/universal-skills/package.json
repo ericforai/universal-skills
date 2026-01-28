@@ -1,0 +1,49 @@
+{
+  "name": "universal-skills",
+  "version": "1.0.0",
+  "description": "Universal AI Coding Skills for Gemini CLI",
+  "publisher": "ericforai",
+  "engines": {
+    "gemini": ">=1.0.0"
+  },
+  "categories": ["other"],
+  "keywords": ["skills", "coding", "workflow", "debugging"],
+  "activationEvents": [
+    "onStartup:finished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "skills": [
+      {
+        "id": "tdd-workflow",
+        "name": "TDD Workflow",
+        "description": "Test-Driven Development workflow enforcement",
+        "category": "coding"
+      },
+      {
+        "id": "systematic-debugging",
+        "name": "Systematic Debugging",
+        "description": "Structured debugging methodology",
+        "category": "debugging"
+      },
+      {
+        "id": "minimalist-refactorer",
+        "name": "Minimalist Refactorer",
+        "description": "Simplify and clean code with minimal changes",
+        "category": "refactoring"
+      },
+      {
+        "id": "brainstorming",
+        "name": "Brainstorming",
+        "description": "Collaborative thinking for complex problems",
+        "category": "workflow"
+      },
+      {
+        "id": "coding-standards",
+        "name": "Coding Standards",
+        "description": "Universal coding standards and best practices",
+        "category": "coding"
+      }
+    ]
+  }
+}

@@ -40,21 +40,16 @@ backup() {
 sync_claude() {
     local target="$HOME/.claude/skills"
 
-    if [ -d "$target" ]; then
+    if [ -d "$target" ] && [ ! -L "$target" ]; then
         backup "$target"
         rm -rf "$target"
     fi
 
-    mkdir -p "$(dirname "$target")"
-    ln -sf "$UNIVERSAL_SKILLS/categories/coding" "$target/coding"
-    ln -sf "$UNIVERSAL_SKILLS/categories/debugging" "$target/debugging"
-    ln -sf "$UNIVERSAL_SKILLS/categories/refactoring" "$target/refactoring"
-    ln -sf "$UNIVERSAL_SKILLS/categories/architecture" "$target/architecture"
-    ln -sf "$UNIVERSAL_SKILLS/categories/tools" "$target/tools"
-    ln -sf "$UNIVERSAL_SKILLS/categories/workflow" "$target/workflow"
+    # 重新创建目标目录
+    mkdir -p "$target"
 
-    # 复制 markdown 文件（顶级）
-    find "$UNIVERSAL_SKILLS/categories" -name "*.md" -maxdepth 2 -exec cp {} "$target/" \; 2>/dev/null || true
+    # 复制整个 categories 内容到 target
+    cp -r "$UNIVERSAL_SKILLS/categories"/* "$target/"
 
     success "Claude Code skills 已同步"
 }
@@ -63,15 +58,20 @@ sync_claude() {
 sync_codex() {
     local target="$HOME/.codex/skills"
 
-    if [ -d "$target" ]; then
+    if [ -d "$target" ] && [ ! -L "$target" ]; then
         backup "$target"
-        rm -rf "$target"
     fi
 
     mkdir -p "$target"
-    ln -sf "$UNIVERSAL_SKILLS/categories/coding/tdd-workflow" "$target/tdd-workflow"
-    ln -sf "$UNIVERSAL_SKILLS/categories/debugging/systematic-debugging" "$target/systematic-debugging"
-    ln -sf "$UNIVERSAL_SKILLS/categories/refactoring/minimalist-refactorer" "$target/minimalist-refactorer"
+
+    # 复制 Codex 兼容的 skills
+    [ -d "$UNIVERSAL_SKILLS/categories/coding/tdd-workflow" ] && cp -r "$UNIVERSAL_SKILLS/categories/coding/tdd-workflow" "$target/"
+    [ -d "$UNIVERSAL_SKILLS/categories/coding/test-driven-development" ] && cp -r "$UNIVERSAL_SKILLS/categories/coding/test-driven-development" "$target/"
+    [ -d "$UNIVERSAL_SKILLS/categories/debugging/systematic-debugging" ] && cp -r "$UNIVERSAL_SKILLS/categories/debugging/systematic-debugging" "$target/"
+    [ -d "$UNIVERSAL_SKILLS/categories/refactoring/minimalist-refactorer" ] && cp -r "$UNIVERSAL_SKILLS/categories/refactoring/minimalist-refactorer" "$target/"
+    [ -d "$UNIVERSAL_SKILLS/categories/workflow/brainstorming" ] && cp -r "$UNIVERSAL_SKILLS/categories/workflow/brainstorming" "$target/"
+    [ -d "$UNIVERSAL_SKILLS/categories/workflow/writing-plans" ] && cp -r "$UNIVERSAL_SKILLS/categories/workflow/writing-plans" "$target/"
+    [ -d "$UNIVERSAL_SKILLS/categories/workflow/verification-before-completion" ] && cp -r "$UNIVERSAL_SKILLS/categories/workflow/verification-before-completion" "$target/"
 
     success "Codex skills 已同步"
 }
@@ -87,6 +87,47 @@ sync_projects() {
     done
 }
 
+# 同步到 Gemini
+sync_gemini() {
+    if ! command -v gemini &> /dev/null; then
+        warn "Gemini CLI 未安装，跳过"
+        return
+    fi
+
+    local extension_dir="$UNIVERSAL_SKILLS/gemini-extension/universal-skills"
+
+    if [ ! -d "$extension_dir" ]; then
+        warn "Gemini extension 目录不存在，跳过"
+        return
+    fi
+
+    # 检查是否已安装
+    if gemini extensions list 2>/dev/null | grep -q "universal-skills"; then
+        log "Gemini extension 已安装，更新中..."
+        # gemini extensions update universal-skills 2>/dev/null || true
+    else
+        log "安装 Gemini extension..."
+        # gemini extensions link "$extension_dir" 2>/dev/null || warn "Gemini extension 安装失败（需手动执行）"
+    fi
+
+    success "Gemini extension 准备就绪（运行 gemini extensions link $extension_dir 手动安装）"
+}
+
+# 同步到 Antigravity (通过 MCP)
+sync_antigravity() {
+    local mcp_config="$HOME/.gemini/mcp_config.json"
+
+    if [ ! -f "$mcp_config" ]; then
+        # 创建 MCP 配置目录
+        mkdir -p "$(dirname "$mcp_config")"
+        echo '{}' > "$mcp_config"
+    fi
+
+    # Antigravity 使用 annotations/brain 机制，不直接同步 skills
+    # 这里只确保 MCP 配置存在，便于未来集成
+    success "Antigravity MCP 配置已准备"
+}
+
 # 创建本地覆盖目录
 mkdir -p "$UNIVERSAL_SKILLS/local"
 
@@ -95,6 +136,8 @@ echo ""
 
 sync_claude
 sync_codex
+sync_gemini
+sync_antigravity
 sync_projects
 
 echo ""
@@ -104,3 +147,6 @@ echo "提示："
 echo "  - 本地自定义技能放在: $UNIVERSAL_SKILLS/local/"
 echo "  - 备份位置: $BACKUP_DIR"
 echo "  - 重启 AI Coding 工具以加载新 skills"
+echo ""
+echo "手动安装 Gemini extension:"
+echo "  gemini extensions link $UNIVERSAL_SKILLS/gemini-extension/universal-skills"
