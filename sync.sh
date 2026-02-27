@@ -48,8 +48,8 @@ sync_claude() {
     # 重新创建目标目录
     mkdir -p "$target"
 
-    # 复制整个 categories 内容到 target
-    cp -r "$UNIVERSAL_SKILLS/categories"/* "$target/"
+    # 复制整个 categories 内容到 target（包含隐藏目录，如 .system）
+    cp -a "$UNIVERSAL_SKILLS/categories"/. "$target"/
 
     success "Claude Code skills 已同步"
 }
@@ -69,30 +69,22 @@ sync_codex() {
     # 复制所有 universal-skills 到 Codex
     local skill_count=0
 
-    # 遍历所有 categories 下的 skills (包含 SKILL.md 的目录)
-    # 注意: 不使用结尾的 / 以复制整个目录
-    for skill_dir in "$UNIVERSAL_SKILLS/categories"/*/*; do
-        if [ -d "$skill_dir" ] && [ -f "$skill_dir/SKILL.md" ]; then
-            local skill_name="$(basename "$skill_dir")"
-            # 使用 rsync 或 cp 来复制整个目录
-            cp -r "$skill_dir" "$target/$skill_name"
-            skill_count=$((skill_count + 1))
-            log "  → $skill_name"
-        fi
-    done
+    # 遍历 categories 下所有包含 SKILL.md 的目录（包含隐藏目录，如 .system）
+    while IFS= read -r -d '' skill_md; do
+        local skill_dir
+        local skill_name
+        skill_dir="$(dirname "$skill_md")"
+        skill_name="$(basename "$skill_dir")"
 
-    # 处理顶层 skills (如 security-review)
-    for skill_dir in "$UNIVERSAL_SKILLS/categories"/*; do
-        if [ -d "$skill_dir" ] && [ -f "$skill_dir/SKILL.md" ]; then
-            local skill_name="$(basename "$skill_dir")"
-            # 避免重复复制
-            if [ ! -d "$target/$skill_name" ]; then
-                cp -r "$skill_dir" "$target/$skill_name"
-                skill_count=$((skill_count + 1))
-                log "  → $skill_name"
-            fi
+        # 避免重名技能重复复制
+        if [ -d "$target/$skill_name" ]; then
+            continue
         fi
-    done
+
+        cp -r "$skill_dir" "$target/$skill_name"
+        skill_count=$((skill_count + 1))
+        log "  → $skill_name"
+    done < <(find "$UNIVERSAL_SKILLS/categories" -type f -name "SKILL.md" -print0)
 
     success "Codex skills 已同步 ($skill_count 个技能)"
 }

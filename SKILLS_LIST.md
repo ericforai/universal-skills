@@ -1,6 +1,6 @@
 # Universal Skills 完整列表
 
-**最后更新:** 2026-01-28 14:17
+**最后更新:** 2026-02-27
 
 **仓库:** https://github.com/ericforai/universal-skills
 
@@ -15,9 +15,9 @@
 | debugging | 3 |
 | refactoring | 2 |
 | security | 1 |
-| ui-ux | 1 |
+| ui-ux | 2 |
 | workflow | 5 |
-| **总计** | **20** |
+| **总计** | **21** |
 
 ---
 
@@ -77,6 +77,7 @@
 | Skill | 说明 |
 |-------|------|
 | **frontend-design** | 创建高质量前端界面，避免通用 AI 美学 |
+| **ui-ux-pro-max** | UI/UX 设计智能 (67风格, 96配色, 57字体, 100规则) |
 
 ---
 
