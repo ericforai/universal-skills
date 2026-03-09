@@ -1,6 +1,6 @@
 ---
 name: self-verifying-tests
-description: Use when writing E2E tests, building test infrastructure, generating tests from manifest.config.ts, or verifying cross-layer consistency (UI vs Database). Replaces traditional "click and check" testing with system self-verification.
+description: Write tests that verify system consistency: UI matches database, state transitions are valid, docs align with code. Use when building E2E tests, test infrastructure, or detecting hidden bugs between layers. Replaces "click and check" testing. 自验证测试, 跨层验证, 状态机测试
 ---
 
 # Self-Verifying Tests
@@ -11,35 +11,26 @@ Traditional E2E tests verify "user clicks → UI shows success". Self-verifying 
 
 **Core principle:** Hidden bugs live in the gap between "UI looks fine, internal structure is broken". Cross-layer validation eliminates this blind spot.
 
+---
+
 ## When to Use
 
-```dot
-digraph use_flowchart {
-    "Need E2E testing?" [shape=diamond];
-    "Testing UI behavior only?" [shape=diamond];
-    "Use traditional E2E" [shape=box];
-    "Need system consistency?" [shape=diamond];
-    "Use Self-Verifying Tests" [shape=box];
-
-    "Need E2E testing?" -> "Testing UI behavior only?" [label="yes"];
-    "Testing UI behavior only?" -> "Use traditional E2E" [label="yes"];
-    "Testing UI behavior only?" -> "Need system consistency?" [label="no, need deeper"];
-    "Need system consistency?" -> "Use Self-Verifying Tests" [label="yes"];
-    "Need E2E testing?" -> "Use Self-Verifying Tests" [label="no, building infra"];
-}
+```
+✓ "UI 显示成功但数据库没更新"
+✓ "需要验证状态机转换是否正确"
+✓ "测试总是过但上线后出 bug"
+✓ "文档和代码不一致导致问题"
+✓ "需要从 manifest 自动生成测试"
+✓ "想验证跨层数据一致性"
+✓ "UI 和后端状态不同步"
 ```
 
-**Use when:**
-- Writing E2E tests for manifest-configured modules
-- Building test infrastructure or generators
-- Need to verify UI ↔ Database consistency
-- Testing state machine transitions
-- Validating doc-code alignment
-
 **Don't use for:**
-- Simple UI smoke tests (use traditional E2E)
-- Unit tests (use Vitest/Jest)
-- Visual regression (use dedicated tools)
+- 简单 UI 烟雾测试 → 用传统 E2E
+- 单元测试 → 用 Vitest/Jest
+- 视觉回归测试 → 用专用工具
+
+---
 
 ## Four Verification Layers
 
@@ -55,6 +46,8 @@ Model-based testing of state transitions.
 ### Layer 4: Doc-Code Integrity
 Verify documentation matches code before tests run.
 
+---
+
 ## Quick Reference
 
 | Layer | Command | What It Verifies |
@@ -63,6 +56,8 @@ Verify documentation matches code before tests run.
 | Shadow | `verifyInvariant(page, id)` | UI === DB === Audit |
 | FSM | `test:gremlin` | State transition legality |
 | Doc Check | `npm run test:doc-integrity` | Doc ↔ Code alignment |
+
+---
 
 ## Implementation
 
@@ -124,6 +119,8 @@ async function getCurrentStateFromDB(page: Page): Promise<string> {
 }
 ```
 
+---
+
 ## Common Mistakes
 
 | Mistake | Why It's Wrong | Fix |
@@ -134,20 +131,7 @@ async function getCurrentStateFromDB(page: Page): Promise<string> {
 | Ignoring doc drift | Future bugs from outdated docs | Run doc-integrity check |
 | **Assuming state in Gremlin tests** | Defeats the purpose of state testing | Fetch real state from DB/API |
 
-## File Structure
-
-```
-~/.claude/skills/self-verifying-tests/
-├── SKILL.md                    # This file
-├── generators/
-│   ├── manifest-scanner.ts     # Scan manifest.config.ts files
-│   └── playwright-generator.ts # Generate test skeletons
-├── validators/
-│   ├── shadow-inspector.ts     # UI-DB verification helper
-│   └── doc-integrity.ts        # Doc-code alignment checker
-└── templates/
-    └── e2e-test.template.ts    # Test generation template
-```
+---
 
 ## Red Flags - You're Doing It Wrong
 

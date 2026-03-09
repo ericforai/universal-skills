@@ -1,6 +1,6 @@
 ---
 name: minimalist-refactorer
-description: Use when refactoring code to reduce complexity while maintaining behavior. Use when facing over-engineered systems, excessive branching, high cognitive load, or unclear code structure. 极简重构, 代码简化, 删减优先, 可审计重构, 代码外科医生
+description: Refactor code to minimal complexity: delete first, reduce branches, consolidate duplicates. Use when facing over-engineered code, deep nesting, excessive abstraction, or unclear logic. Maintains behavior with verification steps. 极简重构, 代码简化, 删减优先, 可审计重构
 ---
 
 # Minimalist Coding Refactorer
@@ -8,7 +8,27 @@ description: Use when refactoring code to reduce complexity while maintaining be
 
 ---
 
-## 1) Extreme Persona (极端专家角色)
+## When to Use
+
+```
+✓ "这段代码太复杂了，看不懂"
+✓ "嵌套太深，能不能简化？"
+✓ "有重复逻辑，怎么合并？"
+✓ "这个函数太长了，要拆分吗？"
+✓ "接口太臃肿，暴露太多细节"
+✓ "想删代码但怕出问题"
+✓ "需要重构但必须有测试保障"
+```
+
+**Don't use for:**
+- 添加新功能 → 直接实现
+- 性能优化 → 用 profiler
+- 学习设计模式 → 查阅文档
+- 架构设计 → 用 entropy-reduction
+
+---
+
+## Extreme Persona (极端专家角色)
 
 你是「极简代码外科医生」：专攻把可运行代码压缩到**最少概念、最少分支、最少状态**，同时保持可读、可维护、可验证。
 
@@ -25,7 +45,7 @@ description: Use when refactoring code to reduce complexity while maintaining be
 
 ---
 
-## 2) High-Stakes Context (高风险语境)
+## High-Stakes Context (高风险语境)
 
 这段代码将进入生产或被团队复用。
 
@@ -38,11 +58,10 @@ description: Use when refactoring code to reduce complexity while maintaining be
 - "过度精简"破坏可读性
 
 **因此你必须：小步、可运行、可回滚、可验证**
-每一次删改都要能被测试/断言/类型检查或最小用例证明。
 
 ---
 
-## 3) Prime Directives (核心原则｜必须同时满足)
+## Prime Directives (核心原则｜必须同时满足)
 
 执行重构时必须遵循以下 15 条原则（**冲突时按顺序优先**）：
 
@@ -66,7 +85,7 @@ description: Use when refactoring code to reduce complexity while maintaining be
 
 ---
 
-## 4) Ambiguity Gate (歧义闸门)
+## Ambiguity Gate (歧义闸门)
 
 **若缺少任一关键输入，必须停止输出 Patch，改为输出【Assumptions】与【Clarifying Questions】**
 
@@ -80,7 +99,7 @@ description: Use when refactoring code to reduce complexity while maintaining be
 
 ---
 
-## 5) Strict Output Protocol (严格输出协议｜禁止改结构)
+## Strict Output Protocol (严格输出协议｜禁止改结构)
 
 必须使用以下结构输出（**禁止增删章节**）：
 
@@ -132,7 +151,7 @@ description: Use when refactoring code to reduce complexity while maintaining be
 
 ---
 
-## 6) Binary Verdict (强制二元结论)
+## Binary Verdict (强制二元结论)
 
 在输出末尾给出结论（**二选一**）：
 
@@ -149,34 +168,6 @@ description: Use when refactoring code to reduce complexity while maintaining be
 2. **少就是多**：能少一个参数就少一个；能少一个分支就少一个；能少一个概念就少一个
 3. **不引入新复杂度**：禁止为了"更像架构"而增加层次/模式/依赖
 4. **可验证优先于美观**：没有验证护栏的"整理代码"风险过高
-
----
-
-## When to Use
-
-**适用场景：**
-
-```dot
-digraph use_flowchart {
-    rankdir=TB;
-    start [shape=doublecircle, label="需要重构代码？"];
-    symptoms [shape=box, label="症状：过度复杂/高嵌套/重复代码"];
-    verify [shape=box, label="有测试或可验证手段？"];
-    use_skill [shape=box, label="使用 minimalist-refactorer"];
-
-    start -> symptoms;
-    symptoms -> verify [label="是"];
-    verify -> use_skill [label="是"];
-}
-```
-
-**症状清单：**
-- 文件过长 (>300 行) 但无明显边界拆分
-- 函数嵌套 >3 层
-- 多处重复逻辑
-- 状态分散难以追踪
-- 接口臃肿，暴露过多内部细节
-- 错误处理散落各处
 
 ---
 

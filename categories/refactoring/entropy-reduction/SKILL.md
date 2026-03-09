@@ -1,79 +1,73 @@
 ---
 name: entropy-reduction
-description: Use when designing modular architectures, refactoring spaghetti code, or reviewing module boundaries. Use when facing over-engineered systems, circular dependencies, or unclear separation of concerns. 模块化设计, 重构, 代码审查, 架构熵增, 循环依赖, 职责分离, 过度工程, 依赖倒置, SOLID
+description: Design modular code with clear boundaries: one reason to change per module, no circular dependencies, and low complexity. Use when refactoring spaghetti code, fixing over-engineered systems, or deciding where logic belongs. Avoids "5 files for one function" pseudo-modularity. 模块化, 低复杂度, 循环依赖, 依赖倒置, SOLID
 ---
 
 # Entropy Reduction
 
 ## Overview
-Modularization = encapsulating **cognitive load**, not splitting files. A module is a black box: external callers know **WHAT** it does, not **HOW** it works.
+
+**Modularization = encapsulating cognitive load, not splitting files.**
+
+A module is a black box: external callers know **WHAT** it does, not **HOW** it works.
 
 **The boundary is the interface.** If changing internal implementation affects external code, the boundary is wrong.
 
+---
+
 ## When to Use
 
-```dot
-digraph use_flowchart {
-    rankdir=TB;
-    node [fontname="Arial", fontsize=10];
-    edge [fontname="Arial", fontsize=9];
-
-    start [shape=doublecircle, label="Starting architecture work?"];
-    design [shape=box, label="New system design"];
-    refactor [shape=box, label="Refactoring legacy code"];
-    review [shape=box, label="Code review"];
-    entropy [shape=box, label="Use entropy-reduction skill"];
-
-    start -> design [label="New feature"];
-    start -> refactor [label="Technical debt"];
-    start -> review [label="Evaluating design"];
-    design -> entropy;
-    refactor -> entropy;
-    review -> entropy;
-}
+```
+✓ "这个文件太长了，但不知道怎么拆分"
+✓ "加一个功能需要改 5 个文件，太麻烦"
+✓ "这段逻辑应该放在哪里？"
+✓ "出现循环依赖错误了"
+✓ "代码过度设计了，怎么简化？"
+✓ "模块之间的边界不清晰"
+✓ "职责划分混乱，不知道怎么划分"
 ```
 
-**Symptoms that indicate this skill applies:**
-- "This file is too long, let me split it" (but no clear boundary)
-- "I need to change 5 files to add one feature"
-- "Where does this logic belong?"
-- Circular dependency errors
-- Unclear whether to extract a module/service/class
+**Don't use for:**
+- 简单代码重构 → 直接重构即可
+- 性能优化 → 用 profiler
+- 学习设计模式 → 查阅文档
 
-## Core Constraints <span aria-label="warning">⚠️</span>
+---
 
-These are **hard rules**, not guidelines. Violating them increases entropy.
+## Core Constraints ⚠️
 
-| Metric | Threshold | Why |
-|--------|-----------|-----|
-| **Cyclomatic Complexity** | < 10 per module | Higher = branching logic, harder to test |
-| **Fan-out** | ≤ 5 | Module depends on too many others |
-| **Fan-in** | High is good | Many depend on this = stable abstraction |
-| **Module Depth** | ≤ 4 layers | Deeper = hard to trace call flow |
-| **File Length** | < 300 lines | Longer = doing too much |
+这些是**硬规则**，不是建议。违反它们会增加系统熵：
 
-**Measuring fan-in/fan-out:**
+| 指标 | 阈值 | 原因 |
+|------|------|------|
+| **圈复杂度** | < 10/模块 | 更高 = 分支逻辑多，难测试 |
+| **扇出** | ≤ 5 | 模块依赖太多其他模块 |
+| **扇入** | 高 = 好 | 很多模块依赖此 = 稳定抽象 |
+| **模块深度** | ≤ 4 层 | 更深 = 难追踪调用流 |
+| **文件长度** | < 300 行 | 更长 = 做太多事情 |
+
+**扇入/扇出定义：**
 ```
-fan-in  = number of modules importing THIS module
-fan-out = number of modules THIS module imports
+扇入  = 导入此模块的其他模块数量
+扇出  = 此模块导入的其他模块数量
 ```
 
-## Module Boundaries
+---
 
-### What IS a Module
+## 什么是模块（What IS a Module）
 
-A module has **one reason to change** (SRP). Changes come from:
-- Business rule changes
-- API changes of external dependency
-- Performance requirements
-- Regulatory/compliance changes
+模块有**唯一变更原因**（SRP）。变更来自：
+- 业务规则变化
+- 外部依赖 API 变化
+- 性能需求
+- 合规/监管要求
 
-If a module would change for >1 of these reasons, it has **multiple responsibilities**.
+如果一个模块会因 >1 个原因变更，它有**多重职责**。
 
-### What is NOT a Module
+### 什么不是模块（What is NOT a Module）
 
 ```javascript
-// <span aria-label="wrong">❌</span> Pseudo-modularity: 5 files for one operation
+// ❌ 伪模块化：一个操作拆成 5 个文件
 // modules/payment/alipay/request.js
 export async function makeRequest(config) {
   return await fetch(config.url, config.options);
@@ -88,10 +82,10 @@ export function logPayment(data) { console.log('[ALIPAY]', data); }
 export function checkStatus(status) { /* ... */ }
 ```
 
-**Problem:** Each file is a trivial wrapper. No encapsulation, just indirection.
+**问题**：每个文件都是简单包装，没有封装，只是重定向。
 
 ```javascript
-// <span aria-label="correct">✅</span> Cohesive module: one abstraction, complete operation
+// ✅ 内聚模块：一个抽象，完整操作
 // modules/payment/alipay.js
 export class AlipayProvider {
   async createPayment(order) {
@@ -101,82 +95,76 @@ export class AlipayProvider {
     return this.parseResponse(response);
   }
 
-  validate(order) { /* domain validation */ }
-  signRequest(order) { /* Alipay-specific signing */ }
+  validate(order) { /* 领域验证 */ }
+  signRequest(order) { /* 支付宝签名 */ }
   request(params) { /* HTTP with retry, timeout */ }
-  parseResponse(resp) { /* Alipay-specific parsing */ }
+  parseResponse(resp) { /* 支付宝解析 */ }
 }
 ```
 
-**Better:** One file, one abstraction, complete operation. Internal details are private.
+**更好**：一个文件，一个抽象，完整操作。内部细节私有。
 
-### Layer Boundaries
+---
+
+## 层边界（Layer Boundaries）
 
 ```
-<span aria-label="border">┌</span>─────────────────────────────────────────────────────<span aria-label="border">┐</span>
-<span aria-label="border">│</span> Domain Layer     <span aria-label="border">│</span> Business rules, no I/O           <span aria-label="border">│</span>
-<span aria-label="border">│</span>                  <span aria-label="border">│</span> Pure functions, entities         <span aria-label="border">│</span>
-<span aria-label="border">├</span>─────────────────────────────────────────────────────<span aria-label="border">┤</span>
-<span aria-label="border">│</span> Application Layer          <span aria-label="border">│</span> Orchestration, workflows  <span aria-label="border">│</span>
-<span aria-label="border">│</span>                          <span aria-label="border">│</span> Coordinates domain objects <span aria-label="border">│</span>
-<span aria-label="border">├</span>─────────────────────────────────────────────────────<span aria-label="border">┤</span>
-<span aria-label="border">│</span> Infrastructure Layer <span aria-label="border">│</span> Database, API, email, file   <span aria-label="border">│</span>
-<span aria-label="border">│</span>                      <span aria-label="border">│</span> External systems              <span aria-label="border">│</span>
-<span aria-label="border">└</span>─────────────────────────────────────────────────────<span aria-label="border">┘</span>
+┌─────────────────────────────────────────────────────┐
+│ Domain Layer     │ 业务规则，无 I/O           │
+│                  │ 纯函数，实体             │
+├─────────────────────────────────────────────────────┤
+│ Application Layer │ 编排，工作流              │
+│                  │ 协调领域对象             │
+├─────────────────────────────────────────────────────┤
+│ Infrastructure Layer │ 数据库，API，邮件，文件   │
+│                  │ 外部系统                 │
+└─────────────────────────────────────────────────────┘
 ```
 
-**Dependency direction:** Infrastructure → Domain is FORBIDDEN. Domain → Infrastructure via interfaces only.
+**依赖方向**：Infrastructure → Domain 禁止。Domain → Infrastructure 仅通过接口。
 
-### Red Flags - STOP and Reconsider
+---
 
-- "Each file has one function, so it's modular"
-- "This is Strategy pattern, so it's correct"
-- "I might need this flexibility later"
-- "This will make testing easier" (for trivial wrappers)
-- "Let me extract an interface" (without multiple implementations)
+## 依赖规则
 
-**All of these indicate pseudo-modularity.** Re-read this skill.
-
-## Dependency Rules
-
-### Dependency Inversion Principle (DIP)
+### 依赖倒置原则（DIP）
 
 ```javascript
-// <span aria-label="wrong">❌</span> Violation: Domain depends on Infrastructure
+// ❌ 违规：Domain 依赖 Infrastructure
 class PaymentService {
   constructor() {
-    this.db = new MySQLDatabase();  // Concrete dependency
+    this.db = new MySQLDatabase();  // 具体依赖
   }
 }
 
-// <span aria-label="correct">✅</span> Correct: Domain depends on abstraction
+// ✅ 正确：Domain 依赖抽象
 class PaymentService {
-  constructor(database) {  // Interface injected
+  constructor(database) {  // 接口注入
     this.db = database;
   }
 }
 ```
 
-### Detect Circular Dependencies
+### 检测循环依赖
 
-Use tools to detect:
+使用工具检测：
 - `madge --circular src/` (JavaScript/TypeScript)
 - `depcruise --output-type err src/`
 
-**Manual check:** If Module A imports Module B, and Module B imports Module A → **extract a shared Module C** that both depend on.
+**手动检查**：如果模块 A 导入模块 B，模块 B 也导入模块 A → **提取公共模块 C** 让两者都依赖。
 
-### Interface Segregation
+### 接口隔离
 
 ```javascript
-// <span aria-label="wrong">❌</span> Fat interface: forces clients to depend on unused methods
+// ❌ 胖接口：强制客户端依赖不需要的方法
 interface PaymentProvider {
   createPayment(): void;
   refundPayment(): void;
   getTransactionHistory(): void;
-  downloadStatement(): void;  // Only needed by admin
+  downloadStatement(): void;  // 只有管理员需要
 }
 
-// <span aria-label="correct">✅</span> Segregated: clients only depend on what they use
+// ✅ 隔离：客户端只依赖使用的部分
 interface PaymentProvider {
   createPayment(): void;
   refundPayment(): void;
@@ -187,50 +175,56 @@ interface AdminPaymentProvider extends PaymentProvider {
 }
 ```
 
-## Common Anti-Patterns
+---
 
-| Anti-Pattern | Description | Fix |
-|-------------|-------------|-----|
-| **Pseudo-modularity** | Many tiny files, each wrapping a single function | Merge into cohesive module |
-| **God Object** | One module knows everything (domain + infra + UI) | Split by responsibility and layer |
-| **Feature creep** | Module accumulates unrelated features over time | Extract new modules per feature |
-| **Pattern piling** | Strategy + Factory + Builder for simple cases | Start simple, add patterns when needed |
-| **Leaky abstraction** | Internal details exposed through interface | Hide implementation, export minimal interface |
+## 常见反模式
 
-## Rationalization Block
+| 反模式 | 描述 | 修复 |
+|---------|------|------|
+| **伪模块化** | 很多小文件，每个包装一个函数 | 合并到内聚模块 |
+| **上帝对象** | 一个模块知道所有（domain + infra + UI） | 按职责和层拆分 |
+| **功能蔓延** | 模块随时间积累不相关功能 | 按功能提取新模块 |
+| **模式堆砌** | 简单情况用 Strategy + Factory + Builder | 从简单开始，需要时再加模式 |
+| **泄漏抽象** | 内部细节通过接口暴露 | 隐藏实现，导出最小接口 |
 
-| Excuse | Reality |
-|--------|---------|
-| "This follows Strategy pattern" | Patterns don't justify complexity. Is it NEEDED? |
-| "Each file has single responsibility" | SRP = one reason to CHANGE, not one function per file |
-| "This will make testing easier" | Testing trivial wrappers tests nothing. Test actual behavior. |
-| "I might need this flexibility" | YAGNI. Design for current requirements, not hypothetical ones. |
-| "It's more modular this way" | More files ≠ more modular. Cohesion matters more. |
-| "This is standard practice" | Blindly following "standards" without understanding creates entropy. |
+---
 
-**Violating the letter of these rules is violating the spirit.** No exceptions.
+## 理性化反驳（Rationalization Block）
 
-## Quick Reference Checklist
+| 借口 | 现实 |
+|------|------|
+| "这是 Strategy 模式" | 模式不证明复杂性合理。真的需要吗？ |
+| "每个文件单一职责" | SRP = 一个变更原因，不是每文件一个函数 |
+| "这样测试更容易" | 测试包装器什么也测不了。测试实际行为。 |
+| "我以后可能需要这个灵活性" | YAGNI。为当前需求设计，不为假设的未来设计。 |
+| "这样更模块化" | 文件更多 ≠ 更模块化。内聚性更重要。 |
+| "这是标准做法" | 盲目遵循"标准"而不理解会增加熵。 |
 
-Before finalizing a module design:
+**违反规则的精神就是违反规则本身。** 没有例外。
 
-**Structure:**
-- [ ] Each module has < 10 cyclomatic complexity
-- [ ] No module has fan-out > 5
-- [ ] Module depth ≤ 4 layers
-- [ ] No circular dependencies (verified with tool)
+---
 
-**Boundaries:**
-- [ ] Domain layer has no I/O operations
-- [ ] Infrastructure depends on Domain interfaces, not vice versa
-- [ ] Each module has one reason to change
+## 快速检查清单
 
-**Dependencies:**
-- [ ] Concrete dependencies injected via constructor
-- [ ] Interfaces are segregated (no fat interfaces)
-- [ ] No direct coupling between peer modules (use mediator if needed)
+完成模块设计前：
 
-**Red Flags:**
-- [ ] No trivial wrapper functions masquerading as modules
-- [ ] No patterns used without justification
-- [ ] No "flexibility" added for hypothetical future needs
+**结构：**
+- [ ] 每个模块圈复杂度 < 10
+- [ ] 没有模块扇出 > 5
+- [ ] 模块深度 ≤ 4 层
+- [ ] 无循环依赖（工具验证）
+
+**边界：**
+- [ ] Domain 层无 I/O 操作
+- [ ] Infrastructure 依赖 Domain 接口，不反向
+- [ ] 每个模块有一个变更原因
+
+**依赖：**
+- [ ] 具体依赖通过构造函数注入
+- [ ] 接口隔离（无胖接口）
+- [ ] 同层模块间无直接耦合（需要时用 mediator）
+
+**红旗警示：**
+- [ ] 无伪装成模块的包装函数
+- [ ] 无无正当理由使用的模式
+- [ ] 无为假设的未来需求添加的"灵活性"
