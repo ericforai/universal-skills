@@ -1,0 +1,13 @@
+# Virtual environment
+.venv/
+__pycache__/
+*.pyc
+
+# Data and state
+data/
+*.json
+*.cache
+
+# Browser state
+browser_state/
+*.log
